@@ -17,6 +17,33 @@ export default function Register() {
             description="Enter your details below to create your account"
         >
             <Head title="Register" />
+
+            {/* --- DEBUT DE MON CODE (VISUEL) --- */}
+
+            {/* Le titre de l'app, collé en haut à gauche (z-50 pour être au dessus de tout) */}
+            <div className="fixed top-8 left-8 z-50">
+                <h1 className="text-3xl font-black tracking-tight text-primary">
+                    Techknè Portal
+                </h1>
+            </div>
+
+            {/* La zone d'image à droite.
+                - w-1/3 : prend un tiers de l'écran.
+                - hidden lg:flex : caché sur mobile, visible sur grand écran.
+                - -z-10 : en arrière plan pour ne pas gêner le clic.
+            */}
+            <div className="fixed top-0 right-0 h-full w-1/3 bg-muted/30 border-l border-muted hidden lg:flex items-center justify-center -z-10">
+                <div className="text-center p-10">
+                    <div className="text-6xl mb-4">✨</div>
+                    <p className="text-muted-foreground font-medium">
+                        [PLACEHOLDER IMAGE] <br/>
+                        Rejoignez l'écosystème
+                    </p>
+                </div>
+            </div>
+
+            {/* --- FIN DE MON CODE --- */}
+
             <Form
                 {...store.form()}
                 resetOnSuccess={['password', 'password_confirmation']}

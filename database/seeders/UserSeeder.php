@@ -4,34 +4,36 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\User;
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Role; // On garde ça ici
 
 class UserSeeder extends Seeder
 {
     public function run(): void
     {
-
-
-        User::firstOrCreate(
-            ['email' => 'user@example.com'],
+        // 1. Créer l'utilisateur Admin
+        $adminUser = User::firstOrCreate(
+            ['email' => 'admin@example.com'],
             [
-                'name' => 'Test User',
-                'password' => 'password',
-                'email_verified_at' => now(),
-            ]);
-
-        $adminRole = Role::firstOrCreate(['name' => 'admin']);
-        $adminRole->syncPermissions(Permission::all());
-
-        $user = User::firstOrCreate(
-            ['email' => 'admin@gmail.com'],
-            [
-                'name' => 'Moad Boudjemline',
+                'name' => 'admin',
                 'password' => bcrypt('admin'),
+                'email_verified_at' => now(),
             ]
         );
 
-        $user->assignRole($adminRole);
+
+        $adminUser->assignRole('admin');
+
+
+        // 3. Créer un utilisateur standard
+        $testUser = User::firstOrCreate(
+            ['email' => 'user@example.com'],
+            [
+                'name' => 'Test User',
+                'password' => bcrypt('password'),
+                'email_verified_at' => now(),
+            ]
+        );
+
+        $testUser->assignRole('user');
     }
 }

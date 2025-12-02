@@ -7,6 +7,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Separator } from '@/components/ui/separator'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
+import AppLayout from '@/layouts/app-layout'
+import { Head } from '@inertiajs/react';
 // J'importe mes icones
 import { DollarSign, Ticket, Cloud, Server, Globe, Mail, Power, Activity, BarChart, ExternalLink, Clock, Zap } from 'lucide-react'
 
@@ -23,6 +25,10 @@ export default function DashboardUser() {
     }
 
     return (
+
+        <AppLayout >
+
+            <Head title="Tableau de Bord" />
         <div className="grid gap-6 p-4">
 
             {/* EN-TÊTE CLIENT */}
@@ -287,5 +293,6 @@ export default function DashboardUser() {
             </Dialog>
 
         </div>
+            </AppLayout >
     )
 }

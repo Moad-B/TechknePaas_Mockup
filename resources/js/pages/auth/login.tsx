@@ -18,16 +18,49 @@ interface LoginProps {
 }
 
 export default function Login({
-    status,
-    canResetPassword,
-    canRegister,
-}: LoginProps) {
+                                  status,
+                                  canResetPassword,
+                                  canRegister,
+                              }: LoginProps) {
     return (
         <AuthLayout
             title="Log in to your account"
             description="Enter your email and password below to log in"
         >
             <Head title="Log in" />
+
+            {/* --- DEBUT DE MON CODE (VISUEL) --- */}
+
+            {/* Ici je mets le titre en FIXE pour qu'il reste collé en haut à gauche de l'écran.
+                J'utilise z-50 pour être sûr qu'il passe DEVANT tout le reste (premier plan).
+                J'ai mis une police bien grasse (font-black) pour que ça claque.
+            */}
+            <div className="fixed top-8 left-8 z-50">
+                <h1 className="text-3xl font-black tracking-tight text-primary">
+                    Techknè Portal
+                </h1>
+            </div>
+
+            {/* Ici c'est mon image de fond à droite.
+                - fixed : pour pas qu'elle bouge.
+                - top-0 right-0 : pour la coller en haut à droite.
+                - w-1/3 : elle prend un tiers de la largeur (pour pas cacher le formulaire au milieu).
+                - h-full : elle prend toute la hauteur.
+                - hidden lg:flex : je la cache sur mobile sinon ça prend trop de place.
+                - -z-10 : je la mets en arrière plan (z index negatif) pour pas gener.
+            */}
+            <div className="fixed top-0 right-0 h-full w-1/3 bg-muted/30 border-l border-muted hidden lg:flex items-center justify-center -z-10">
+                {/* C'est juste un texte en attendant d'avoir la vraie image */}
+                <div className="text-center p-10">
+                    <div className="text-6xl mb-4">🚀</div>
+                    <p className="text-muted-foreground font-medium">
+                        [PLACEHOLDER IMAGE] <br/>
+                        Illustration Futuriste Ici
+                    </p>
+                </div>
+            </div>
+
+            {/* --- FIN DE MON CODE --- */}
 
             <Form
                 {...store.form()}

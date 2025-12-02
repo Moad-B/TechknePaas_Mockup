@@ -2,43 +2,35 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+
 use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Permission;
+
+use Spatie\Permission\PermissionRegistrar;
+use App\Services\PermissionService;
 
 class PermissionSeeder extends Seeder
 {
     /**
      * Run the database seeds.
+     *
      */
-    public function run(): void
+    public function __construct(
+        private readonly PermissionService $permissionService,
+
+    ) {
+    }
+
+    /**
+     * Run the database seeds.
+     *
+     * @return void
+     */
+    public function run()
     {
 
-        $permissions = [
-            'create_product',
-            'edit_product',
-            'delete_product',
-            'view_product',
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
+        $this->command->info('Creating permissions...');
+        $this->permissionService->createPermissions();
 
-            'view_role',
-            'create_role',
-            'edit_role',
-            'delete_role',
-
-            'view_user',
-            'create_user',
-            'edit_user',
-            'delete_user',
-
-            'view_permission',
-            'create_permission',
-            'edit_permission',
-            'delete_permission',
-
-        ];
-
-        foreach ($permissions as $perm) {
-            Permission::firstOrCreate(['name' => $perm]);
-    }
 }
 }

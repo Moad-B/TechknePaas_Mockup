@@ -1,121 +1,82 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Controller;
 use App\Models\Product;
 use Illuminate\Http\Request;
-use Illuminate\View\View;
-use Illuminate\Http\RedirectResponse;
+use Inertia\Inertia;
 
 class ProductController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
+    // Le Constructeur : Les vigiles de l'entrée
     function __construct()
     {
+        // Je verifie les permissions Spatie (qui a le droit de faire quoi)
         $this->middleware('permission:product-list|product-create|product-edit|product-delete', ['only' => ['index','show']]);
         $this->middleware('permission:product-create', ['only' => ['create','store']]);
         $this->middleware('permission:product-edit', ['only' => ['edit','update']]);
         $this->middleware('permission:product-delete', ['only' => ['destroy']]);
     }
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index(): View
-    {
-        $products = Product::latest()->paginate(5);
 
-        return view('products.index',compact('products'))
-            ->with('i', (request()->input('page', 1) - 1) * 5);
+    // Affiche la liste des services (Page Catalogue Admin)
+    public function index()
+    {
+        // Etape 1 : Je recupere les produits, du plus recent au plus vieux
+        $products = Product::orderBy('created_at', 'desc')->paginate(5);
+
+        // Etape 2 : J'envoie la page React
+        return Inertia::render('admin/products/index', [
+            'products' => $products
+        ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create(): View
+    // Enregistre un nouveau service
+    public function store(Request $request)
     {
-        return view('products.create');
-    }
+        // Etape 1 : Validation du formulaire
+        $validated = $request->validate([
+            'name' => 'required|string', // Le nom est obligatoire
+            'description' => 'nullable|string', // La description est optionnelle (peut etre vide)
+            'price' => 'required|numeric', // Le prix (TJM ou Forfait)
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request): RedirectResponse
-    {
-        request()->validate([
-            'name' => 'required',
-            'detail' => 'required',
+            // Astuce : La quantité sert de durée.
+            // Si on met 1 -> C'est un TJM (1 jour)
+            // Si on met > 1 -> C'est un Forfait (plusieurs jours)
+            'quantity' => 'required|integer|min:1',
         ]);
 
-        Product::create($request->all());
+        // Etape 2 : Creation dans la base de données
+        Product::create($validated);
 
-        return redirect()->route('products.index')
-            ->with('success','Product created successfully.');
+        // Etape 3 : On recharge la page
+        // J'utilise back() c'est plus simple que redirect()->route()
+        return back()->with('success', 'Nouveau service ajouté au catalogue.');
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Product  $product
-     * @return \Illuminate\Http\Response
-     */
-    public function show(Product $product): View
+    // Met a jour un service existant
+    public function update(Request $request, Product $product)
     {
-        return view('products.show',compact('product'));
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Product  $product
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Product $product): View
-    {
-        return view('products.edit',compact('product'));
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Product  $product
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, Product $product): RedirectResponse
-    {
-        request()->validate([
-            'name' => 'required',
-            'detail' => 'required',
+        // Etape 1 : Re-validation des données
+        $validated = $request->validate([
+            'name' => 'required|string',
+            'description' => 'nullable|string', // On n'oublie pas la description ici aussi
+            'price' => 'required|numeric',
+            'quantity' => 'required|integer|min:1',
         ]);
 
-        $product->update($request->all());
+        // Etape 2 : Mise à jour
+        $product->update($validated);
 
-        return redirect()->route('products.index')
-            ->with('success','Product updated successfully');
+        // Etape 3 : On recharge
+        return back()->with('success', 'Service modifié avec succès');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Product  $product
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(Product $product): RedirectResponse
+    // Supprime un service
+    public function destroy(Product $product)
     {
         $product->delete();
 
-        return redirect()->route('products.index')
-            ->with('success','Product deleted successfully');
+        return back()->with('success', 'Service supprimé du catalogue');
     }
 }

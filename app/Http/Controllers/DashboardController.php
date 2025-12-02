@@ -16,11 +16,11 @@ class DashboardController extends Controller
         // -------------------------------------------------------
         // CAS N°1 : L'utilisateur est un ADMIN
         // -------------------------------------------------------
-        if ($user->hasRole('admin')) {
+        if ($user->hasRole('Admin')) {
 
             // MEMO : On renvoie vers le Dashboard "Superviseur".
             // On lui donne les chiffres globaux de l'entreprise.
-            return Inertia::render('Admin/Dashboard', [
+            return Inertia::render('admin/Dashboard', [
                 'userName' => $user->name,
                 'total_revenue' => '10 000 €', // Donnée sensible (Admin seulement)
                 'total_users' => 150

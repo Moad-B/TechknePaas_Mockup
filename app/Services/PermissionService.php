@@ -1,103 +1,57 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Services;
 
-use Illuminate\Database\Eloquent\Collection;
+// J'importe le modele Permission de Spatie
 use Spatie\Permission\Models\Permission;
 
 class PermissionService
 {
-    /**
-     * Get all permissions
-     * 
-     * @return array
-     */
-    public function getAllPermissions(): array
+    // C'est ici que je liste toutes les actions possibles dans mon site
+    // Comme ca, si je dois en rajouter, je viens juste ici
+    public function getAllPermissions()
     {
-        $permissions = [
-            'user.create',
-            'user.view',
-            'user.update',
-            'user.delete',
-            'role.create',
-            'role.view',
-            'role.update',
-            'role.delete',
-            'setting.create',
-            'setting.view',
-            'setting.update',
-            'setting.delete',
-            'dashboard.view',
-            'profile.view',
-            'profile.edit',
-            'profile.update',
-        ];
+        return [
+            // --- ACCES GENERAL ---
+            'view_dashboard', // Voir le tableau de bord
 
-        return $permissions;
+            // --- GESTION DES UTILISATEURS ---
+            'view_user',
+            'create_user',
+            'edit_user',
+            'delete_user',
+
+            // --- GESTION DU CATALOGUE (Produits/Services) ---
+            'view_product',
+            'create_product',
+            'edit_product',
+            'delete_product',
+
+            // --- GESTION DES ROLES (RBAC) ---
+            'view_role',
+            'create_role',
+            'edit_role',
+            'delete_role',
+        ];
     }
 
-    
-    /**
-     * Get all permission models from database
-     *
-     * @return Collection
-     */
-    public function getAllPermissionModels(): Collection
+    // Cette fonction sert a remplir la base de données avec ma liste
+    // Je l'appelle quand je lance l'application pour etre sur que tout est la
+    public function createPermissions()
+    {
+        // Je recupere ma liste du dessus
+        $permissions = $this->getAllPermissions();
+
+        foreach ($permissions as $permissionName) {
+            // Pour chaque nom, je crée une permission dans la base
+            // "firstOrCreate" verifie d'abord si ca existe pour pas créer de doublons
+            Permission::firstOrCreate(['name' => $permissionName]);
+        }
+    }
+
+    // Juste pour recuperer la liste de la BDD si besoin
+    public function getAllPermissionModels()
     {
         return Permission::all();
-    }
-    
-      
-    /**
-     * Create all permissions from the definitions
-     * 
-     * @return array Created permissions
-     */
-    public function createPermissions(): array
-    {
-        $createdPermissions = [];
-        $permissions = $this->getAllPermissions();
-        
-        foreach ($permissions as $permission) {
-            $permission = $this->findOrCreatePermission($permission);
-            $createdPermissions[] = $permission;
-        }
-        
-        return $createdPermissions;
-    }
-    
-    /**
-     * Find or create a permission
-     * 
-     * @param string $name
-     * @return Permission
-     */
-    public function findOrCreatePermission(string $name): Permission
-    {
-        return Permission::firstOrCreate(
-            ['name' => $name],
-            [
-                'name' => $name,
-                'guard_name' => 'web',
-            ]
-        );
-    }
-    
-    /**
-     * Get all permission objects by their names
-     * 
-     * @param array $permissionNames
-     * @return array
-     */
-    public function getPermissionsByNames(array $permissionNames): array
-    {
-        return Permission::whereIn('name', $permissionNames)->get()->all();
-    }
-
-    public function getPermissionsByIds(array $roleIds, string $guard): Collection
-    {
-        return Permission::whereIn('id', $roleIds)->where('guard_name', $guard)->get();
     }
 }

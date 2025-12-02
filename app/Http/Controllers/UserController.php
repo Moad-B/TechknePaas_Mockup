@@ -1,58 +1,47 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\User;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
 use Spatie\Permission\Models\Role;
-use DB;
-use Hash;
-use Illuminate\Support\Arr;
-use Illuminate\View\View;
-use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index(Request $request): View
+    public function index()
     {
-        $data = User::latest()->paginate(5);
+        // ... (code inchangé)
+        $users = User::with('roles')->latest()->paginate(5);
+        $roles = Role::pluck('name', 'name')->all();
 
-        return view('users.index',compact('data'))
-            ->with('i', ($request->input('page', 1) - 1) * 5);
+        return Inertia::render('admin/users/index', [
+            'users' => $users,
+            'roles' => $roles,
+        ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create(): View
+    public function store(Request $request)
     {
-        $roles = Role::pluck('name','name')->all();
-
-        return view('users.create',compact('roles'));
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request): RedirectResponse
-    {
-        $this->validate($request, [
+        $request->validate([
             'name' => 'required',
             'email' => 'required|email|unique:users,email',
-            'password' => 'required|same:confirm-password',
+            'password' => 'required|min:8',
             'roles' => 'required'
         ]);
+
+        // --- SECURITE AJOUTÉE ---
+        // Si on essaie de donner le role "Superadmin"...
+        if (in_array('Superadmin', $request->input('roles'))) {
+            // ... et que je ne suis PAS moi-même Superadmin...
+            if (!auth()->user()->hasRole('Superadmin')) {
+                // ... ALORS JE BLOQUE !
+                return back()->with('error', 'Seul un Superadmin peut créer un autre Superadmin.');
+            }
+        }
+        // ------------------------
 
         $input = $request->all();
         $input['password'] = Hash::make($input['password']);
@@ -60,81 +49,49 @@ class UserController extends Controller
         $user = User::create($input);
         $user->assignRole($request->input('roles'));
 
-        return redirect()->route('users.index')
-            ->with('success','User created successfully');
+        return back()->with('success', 'Utilisateur créé avec succès');
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id): View
+    public function update(Request $request, $id)
     {
-        $user = User::find($id);
-
-        return view('users.show',compact('user'));
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id): View
-    {
-        $user = User::find($id);
-        $roles = Role::pluck('name','name')->all();
-        $userRole = $user->roles->pluck('name','name')->all();
-
-        return view('users.edit',compact('user','roles','userRole'));
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id): RedirectResponse
-    {
-        $this->validate($request, [
+        $request->validate([
             'name' => 'required',
             'email' => 'required|email|unique:users,email,'.$id,
-            'password' => 'same:confirm-password',
             'roles' => 'required'
         ]);
+
+        // --- SECURITE AJOUTÉE ---
+        if (in_array('Superadmin', $request->input('roles'))) {
+            if (!auth()->user()->hasRole('Superadmin')) {
+                return back()->with('error', 'Action non autorisée.');
+            }
+        }
+        // ------------------------
 
         $input = $request->all();
         if(!empty($input['password'])){
             $input['password'] = Hash::make($input['password']);
         }else{
-            $input = Arr::except($input,array('password'));
+            unset($input['password']);
         }
 
         $user = User::find($id);
         $user->update($input);
-        DB::table('model_has_roles')->where('model_id',$id)->delete();
+        $user->syncRoles($request->input('roles'));
 
-        $user->assignRole($request->input('roles'));
-
-        return redirect()->route('users.index')
-            ->with('success','User updated successfully');
+        return back()->with('success', 'Utilisateur mis à jour');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id): RedirectResponse
+    public function destroy($id)
     {
-        User::find($id)->delete();
-        return redirect()->route('users.index')
-            ->with('success','User deleted successfully');
+        $user = User::find($id);
+
+        // Petite sécurité en plus : on ne supprime pas un Superadmin si on est juste Admin
+        if ($user->hasRole('Superadmin') && !auth()->user()->hasRole('Superadmin')) {
+            return back()->with('error', 'Vous ne pouvez pas supprimer un Superadmin.');
+        }
+
+        $user->delete();
+        return back()->with('success', 'Utilisateur supprimé');
     }
 }
