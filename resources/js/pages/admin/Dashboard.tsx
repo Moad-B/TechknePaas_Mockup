@@ -33,7 +33,7 @@ export default function Dashboard({ auth, userName, total_revenue, total_users }
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight">Vue d'ensemble</h1>
                     <p className="text-muted-foreground">
-                        Bonjour <span className="font-bold text-indigo-600">{userName}</span>, voici le centre de commande Techknè Portal.
+                        Bonjour <span className="font-bold text-violet-800">{userName}</span>, voici le centre de commande Techknè Portal.
                     </p>
                 </div>
 
@@ -167,7 +167,7 @@ export default function Dashboard({ auth, userName, total_revenue, total_users }
                                                 <AlertTriangle className="h-5 w-5 text-red-600" />
                                             </div>
                                             <div>
-                                                <p className="font-medium">Panne Critique</p>
+                                                <p className="font-extrabold">client site web</p>
                                                 <p className="text-sm text-muted-foreground">Client: AlphaCorp</p>
                                             </div>
                                         </div>
@@ -183,3 +183,4 @@ export default function Dashboard({ auth, userName, total_revenue, total_users }
         </AppLayout>
     );
 }
+
