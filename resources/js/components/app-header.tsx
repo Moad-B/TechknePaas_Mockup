@@ -6,7 +6,7 @@ import { Link, usePage } from '@inertiajs/react';
 import {
     BookOpen, Folder, LayoutGrid, Menu, Users, Shield, Boxes,
     Brain, FileText, Terminal, Receipt, FileSignature,
-    Activity, Database, ChevronDown, Globe, FlaskConical, Code, PenTool
+    Activity, Database, ChevronDown, Globe, FlaskConical, Code, PenTool ,
 } from 'lucide-react';
 import {
     DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -67,10 +67,21 @@ export function AppHeader({ breadcrumbs = [] }) {
         lienProduits = '/admin/products'; // Si je suis admin, je vais vers l'administration
     }
 
+    let liensupport = '/contact'; // Par défaut, c'est la page publique
+    if (estConnecte) {
+        liensupport = '/support';
+        // Si je suis admin, je vais vers l'administration
+
+    }
+    const lienvisiteur =[
+        {title: 'Contact',href: '/contact',icon:Boxes}
+    ];
+
     // Ma liste de liens principaux avec le lien dynamique
     const liensPrincipaux = [
         { title: 'Dashboard', href: dashboard(), icon: LayoutGrid },
         { title: 'Products', href: lienProduits, icon: Boxes },
+        { title: 'Aide', href: liensupport, icon : Boxes},
     ];
 
     const rbacItems = [
@@ -103,6 +114,16 @@ export function AppHeader({ breadcrumbs = [] }) {
                                     <div className="flex flex-col space-y-4">
                                         {/* J'affiche mes liens principaux */}
                                         <div className="flex flex-col space-y-1">
+                                            {lienvisiteur.map((item) => (
+                                                <Link key={item.title} href={item.href} className="flex items-center space-x-2 py-2 font-medium">
+                                                    <Icon iconNode={item.icon} className="h-4 w-4" />
+                                                    <span>{item.title}</span>
+                                                </Link>
+                                            ))}
+
+
+
+
                                             {liensPrincipaux.map((item) => (
                                                 <Link key={item.title} href={item.href} className="flex items-center space-x-2 py-2 font-medium">
                                                     <Icon iconNode={item.icon} className="h-4 w-4" />
