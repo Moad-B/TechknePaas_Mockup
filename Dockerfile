@@ -25,6 +25,17 @@ ENV PHP_OPCACHE_ENABLE=1
 # Dossier de travail standard
 WORKDIR /var/www/html
 
+ENV APACHE_DOCUMENT_ROOT /var/www/html/public
+
+ENV APACHE_DOCUMENT_ROOT /var/www/html/public
+
+# 2. Modifie la config Apache pour utiliser ce dossier
+RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
+RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
+
+# 3. Active le mod_rewrite (OBLIGATOIRE pour les routes Laravel)
+RUN a2enmod rewrite
+
 # Passage en root pour la copie et les permissions
 USER root
 
@@ -49,3 +60,4 @@ RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoload
 
 # L'image serversideup lance automatiquement Nginx et PHP-FPM
 # sur le port 8080,
+
